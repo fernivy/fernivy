@@ -25,6 +25,10 @@ print_help() {
     echo
 }
 
+export() {
+    $@ >> $OUTPUT
+}
+
 ############################################################
 # Check whether mode is set.                               #
 ############################################################
@@ -122,6 +126,8 @@ fi
 if [[ $_t -eq 1 ]]; then
     echo "Total time elapsed: "$TIME" s"
 fi
+
+export echo "hello,world\nenergy,"$ENERGY"\npower,"$POWER"\ntime,"$TIME
 
 echo "Results exported to: "$OUTPUT
 
