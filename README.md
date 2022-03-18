@@ -1,4 +1,4 @@
-# TBD Measuring Energy Consumption
+# FernIvy
 
 Developed by Hana Jirovská and Sára Juhošová for the [Sustainable Software Engineering](https://luiscruz.github.io/course_sustainableSE) course at the TU Delft.
 
