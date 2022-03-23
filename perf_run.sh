@@ -1,5 +1,3 @@
 #!/bin/bash
 
-echo "Running   "$1
-
-$1
+sudo perf stat -e power/energy-psys/ -o temp.txt $1
