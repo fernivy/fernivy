@@ -26,10 +26,6 @@ print_help() {
     echo
 }
 
-export() {
-    $@ >> $OUTPUT
-}
-
 ############################################################
 # Check whether mode is set.                               #
 ############################################################
@@ -54,6 +50,8 @@ set_mode() {
 ############################################################
 
 DT=`date | tr -d ' :'`
+
+TOOL=perf
 
 SECS=60
 OUTPUT=output_$DT.csv
@@ -127,7 +125,14 @@ log echo
 
 if [[ $MODE = "CMD" ]]; then
     echo "Measuring command: "$CMD
+else
+    CMD="sleep "$SECS
 fi
+
+chmod +x $TOOL"_run.sh"
+"./"$TOOL"_run.sh" "$CMD"
+
+# Call parser to parse to $OUTPUT
 
 if [[ $_e -eq 1 ]]; then
     echo "Total energy consumption: "$ENERGY" J"
@@ -138,8 +143,6 @@ fi
 if [[ $_t -eq 1 ]]; then
     echo "Total time elapsed: "$TIME" s"
 fi
-
-export echo "hello,world\nenergy,"$ENERGY"\npower,"$POWER"\ntime,"$TIME
 
 echo "Results exported to: "$OUTPUT
 
