@@ -34,14 +34,14 @@ set_mode() {
     log echo "Attempting to set mode to: "$1
     # if the mode variable is already set
     if [[ -x MODE ]]; then
-        # set the correct mode
-        MODE=$1
-        log echo "Mode is set to: "$MODE
-    else
         # exit with an error
         echo -n "You can only use one mode. "
         echo    "Use either the -s or the -c tag."
         exit
+    else
+        # set the correct mode
+        MODE=$1
+        log echo "Mode is set to: "$MODE
     fi
 }
 
@@ -54,7 +54,7 @@ DT=`date | tr -d ' :'`
 TOOL=powerlog
 
 SECS=60
-OUTPUT=output_$DT.csv
+OUTPUT=output_$DT
 _l=0
 
 ENERGY=$RANDOM
@@ -108,7 +108,7 @@ if [[ -z MODE ]]; then
     log echo "Mode is set to: "$MODE
 fi
 
-if [[ -n FLDR ]]; then
+if [[ -x FLDR ]]; then
     OUTPUT=$FLDR"/"$OUTPUT
     if [ ! -d $FLDR ]; then
         mkdir $FLDR
@@ -132,7 +132,8 @@ fi
 chmod +x $TOOL"_run.sh"
 "./"$TOOL"_run.sh" "$CMD"
 
-# Call parser to parse to $OUTPUT
+python3 parser.py -m $TOOL -t $DT -o $OUTPUT
+rm temp.csv
 
 if [[ $_e -eq 1 ]]; then
     echo "Total energy consumption: "$ENERGY" J"
