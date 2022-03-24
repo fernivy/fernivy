@@ -1,5 +1,5 @@
 from argparse import ArgumentParser
-import pandas
+import csv
 
 
 class Parser:
@@ -10,16 +10,19 @@ class Parser:
         self.export_data(timestamp, output_filename)
 
     def export_data(self, timestamp, filename):
-        """Export this to a CSV."""
-        df = pandas.DataFrame(columns=["timestamp", "total_energy_consumption", "average_power", "time_elapsed"])
+        columns = ["index", "timestamp", "total_energy_consumption", "average_power", "time_elapsed"]
         data = {
+            "index": 0,
             "timestamp": timestamp,
             "total_energy_consumption": self.energy,
             "average_power": self.power,
             "time_elapsed": self.time
         }
-        df = df.append(data, ignore_index=True)
-        df.to_csv(f"{filename}.csv")
+
+        with open(filename + ".csv", 'w') as csvfile:
+            writer = csv.DictWriter(csvfile, fieldnames=columns)
+            writer.writeheader()
+            writer.writerow(data)
 
     def import_data(self, filename):
         pass
