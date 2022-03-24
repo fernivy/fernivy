@@ -33,15 +33,15 @@ print_help() {
 set_mode() {
     log echo "Attempting to set mode to: "$1
     # if the mode variable is already set
-    if [[ -x MODE ]]; then
+    if [[ -z MODE ]]; then
+        # set the correct mode
+        MODE=$1
+        log echo "Mode is set to: "$MODE
+    else
         # exit with an error
         echo -n "You can only use one mode. "
         echo    "Use either the -s or the -c tag."
         exit
-    else
-        # set the correct mode
-        MODE=$1
-        log echo "Mode is set to: "$MODE
     fi
 }
 
@@ -103,12 +103,12 @@ while getopts ":c:ef:hlo:ps:t" option; do
     esac
 done
 
-if [[ -z MODE ]]; then
+if [[ -n MODE ]]; then
     MODE="TIMED"
     log echo "Mode is set to: "$MODE
 fi
 
-if [[ -x FLDR ]]; then
+if [[ -n FLDR ]]; then
     OUTPUT=$FLDR"/"$OUTPUT
     if [ ! -d $FLDR ]; then
         mkdir $FLDR
