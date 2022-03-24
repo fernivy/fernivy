@@ -1,5 +1,5 @@
 from argparse import ArgumentParser
-import pandas
+import csv
 
 
 class Parser:
@@ -10,10 +10,19 @@ class Parser:
         self.export_data(timestamp, output_filename)
 
     def export_data(self, timestamp, filename):
-        """Export this to a CSV."""
-        df = pandas.Series([timestamp, self.energy, self.power, self.time])
-        df.index = ["timestamp", "total_energy_consumption", "average_power", "time_elapsed"]
-        df.to_csv(f"{filename}.csv")
+        columns = ["index", "timestamp", "total_energy_consumption", "average_power", "time_elapsed"]
+        data = {
+            "index": 0,
+            "timestamp": timestamp,
+            "total_energy_consumption": self.energy,
+            "average_power": self.power,
+            "time_elapsed": self.time
+        }
+
+        with open(filename + ".csv", 'w') as csvfile:
+            writer = csv.DictWriter(csvfile, fieldnames=columns)
+            writer.writeheader()
+            writer.writerow(data)
 
     def import_data(self, filename):
         pass
@@ -30,7 +39,7 @@ class PerfParser(Parser):
             lines = f.readlines()
             self.energy = float(lines[5].strip(" ").split(" ")[0])
             self.time = float(lines[7].strip(" ").split(" ")[0])
-            self.power = self.energy / self. time
+            self.power = self.energy / self.time
 
 
 class PowerLogParser(Parser):
@@ -42,10 +51,9 @@ class PowerLogParser(Parser):
         """Imports data from a csv file outputted by PowerLog."""
         with open(filename + ".csv", "r") as file:
             lines = file.readlines()
-            self.time = float(lines[-14].split(" = ")[1][:-2])
-            self.power = float(lines[-9].split(" = ")[1][:-2])
             self.energy = float(lines[-11].split(" = ")[1][:-2])
-            # print(self.time)
+            self.power = float(lines[-9].split(" = ")[1][:-2])
+            self.time = float(lines[-14].split(" = ")[1][:-2])
 
 
 if __name__ == '__main__':
