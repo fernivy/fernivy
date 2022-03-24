@@ -61,12 +61,10 @@ _l=0
 _m=0 # bool for setting mode
 _f=0 # bool for setting folder
 
-ENERGY=$RANDOM
-_e=0
-POWER=$RANDOM
-_p=0
-TIME=$RANDOM
-_t=0
+_s=0 # trool for printing any of the following:
+_e=0 # energy
+_p=0 # power
+_t=0 # time elapsed
 
 ############################################################
 # Process the input options.                               #
@@ -79,6 +77,7 @@ while getopts ":c:ef:hlo:ps:t" option; do
             CMD=$OPTARG
             log echo "Command set to: "$CMD;;
         e) # set energy flag
+            _s=1
             _e=1;;
         f) # set output folder
             FLDR=$OPTARG
@@ -92,12 +91,14 @@ while getopts ":c:ef:hlo:ps:t" option; do
         o) # set output file
             OUTPUT=$OPTARG;;
         p) # set power flag
+            _s=1
             _p=1;;
         s) # set amount of seconds to run
             set_mode "TIMED"
             SECS=$OPTARG
             log echo "Runtime set to: "$SECS" s";;
         t) # set time flag
+            _s=1
             _t=1;;
         :) # missing argument
             echo "Error: Missing argument"
@@ -145,20 +146,46 @@ chmod +x $TOOL"_run.sh"
 
 python3 parser.py -m $TOOL -t $DT -o $OUTPUT
 
-if [[ $TOOL = "perf" ]]; then
+if [[ $TOOL = "perf" ]] && [[ $_s -ne 2 ]]; then
     rm -f temp.txt
-elif [[ $TOOL = "powerlog" ]]; then
+elif [[ $TOOL = "powerlog" ]] || [[ $_s -eq 2 ]]; then
     rm -f temp.csv
 fi
 
-if [[ $_e -eq 1 ]]; then
-    echo "Total energy consumption: "$ENERGY" J"
-fi
-if [[ $_p -eq 1 ]]; then
-    echo "Average power: "$POWER" W"
-fi
-if [[ $_t -eq 1 ]]; then
-    echo "Total time elapsed: "$TIME" s"
+if [[ $_s -eq 1 ]]; then
+
+    RESULT=$( cat $OUTPUT.csv | sed -n 2p )
+    
+    THING="i"
+    
+    IFS=',' read -ra ADDR <<< "$RESULT"
+    for i in "${ADDR[@]}"; do
+        # index
+        if [[ $THING = "i" ]]; then
+            THING="ts"
+        # timestamp
+        elif [[ $THING = "ts" ]]; then
+            THING="e"
+        # energy consumption
+        elif [[ $THING = "e" ]]; then
+            if [[ $_e -eq 1 ]]; then
+                echo "Total energy consumption: "$i" J"
+            fi
+            THING="p"
+        # power
+        elif [[ $THING = "p" ]]; then
+            if [[ $_p -eq 1 ]]; then
+                echo "Average power: "$i" W"
+            fi
+            THING="t"
+        # time elapsed
+        elif [[ $THING = "t" ]]; then
+            if [[ $_t -eq 1 ]]; then
+                echo "Total time elapsed: "$i" s"
+            fi
+            THING=""
+        fi
+    done
 fi
 
 echo "Results exported to: "$OUTPUT".csv"
