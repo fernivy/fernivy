@@ -133,7 +133,7 @@ chmod +x $TOOL"_run.sh"
 "./"$TOOL"_run.sh" "$CMD"
 
 python3 parser.py -m $TOOL -t $DT -o $OUTPUT
-rm temp.txt
+rm -f temp.txt
 
 if [[ $_e -eq 1 ]]; then
     echo "Total energy consumption: "$ENERGY" J"
