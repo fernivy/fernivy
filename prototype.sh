@@ -19,7 +19,7 @@ print_help() {
     echo "f     Set the folder in which to save the output file. If it does not exist, it will be created."
     echo "h     Print this Help."
     echo "l     Run in logging mode."
-    echo "o     Set output file. The path to the file has to exist."
+    echo "o     Set output file. The path to the file has to exist. Cannot be \"temp\"."
     echo "p     Print average power."
     echo "s     Run for specified amount of seconds."
     echo "t     Print total execution time."
@@ -33,7 +33,7 @@ print_help() {
 set_mode() {
     log echo "Attempting to set mode to: "$1
     # if the mode variable is already set
-    if [[ -v MODE ]]; then
+    if [[ $_m -eq 1 ]]; then
         # exit with an error
         echo -n "You can only use one mode. "
         echo    "Use either the -s or the -c tag."
@@ -41,6 +41,7 @@ set_mode() {
     else
         # set the correct mode
         MODE=$1
+        _m=1
         log echo "Mode is set to: "$MODE
     fi
 }
@@ -56,6 +57,9 @@ TOOL=perf
 SECS=60
 OUTPUT=output_$DT
 _l=0
+
+_m=0 # bool for setting mode
+_f=0 # bool for setting folder
 
 ENERGY=$RANDOM
 _e=0
@@ -78,6 +82,7 @@ while getopts ":c:ef:hlo:ps:t" option; do
             _e=1;;
         f) # set output folder
             FLDR=$OPTARG
+            _f=1
             log echo "Folder set to: "$FLDR;;
         h) # display Help
             print_help
@@ -103,16 +108,22 @@ while getopts ":c:ef:hlo:ps:t" option; do
     esac
 done
 
-if [[ -z MODE ]]; then
+if [[ $_m -eq 0 ]]; then
     MODE="TIMED"
+    _m=1
     log echo "Mode is set to: "$MODE
 fi
 
-if [[ -v FLDR ]]; then
+if [[ $_f -eq 1 ]]; then
     OUTPUT=$FLDR"/"$OUTPUT
     if [ ! -d $FLDR ]; then
         mkdir $FLDR
         log echo "Created folder: "$FLDR
+    fi
+else
+    if [[ $OUTPUT = "temp" ]]; then
+        echo "You cannot set the output file to be \"temp\"."
+        exit
     fi
 fi
 log echo "Output file set to: "$OUTPUT
@@ -130,10 +141,15 @@ else
 fi
 
 chmod +x $TOOL"_run.sh"
-"./"$TOOL"_run.sh" "$CMD"
+"./"$TOOL"_run.sh" "$CMD" &>/dev/null
 
 python3 parser.py -m $TOOL -t $DT -o $OUTPUT
-rm -f temp.txt
+
+if [[ $TOOL = "perf" ]]; then
+    rm -f temp.txt
+elif [[ $TOOL = "powerlog" ]]; then
+    rm -f temp.csv
+fi
 
 if [[ $_e -eq 1 ]]; then
     echo "Total energy consumption: "$ENERGY" J"
@@ -145,4 +161,4 @@ if [[ $_t -eq 1 ]]; then
     echo "Total time elapsed: "$TIME" s"
 fi
 
-echo "Results exported to: "$OUTPUT
+echo "Results exported to: "$OUTPUT".csv"
