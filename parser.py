@@ -11,8 +11,14 @@ class Parser:
 
     def export_data(self, timestamp, filename):
         """Export this to a CSV."""
-        df = pandas.Series([timestamp, self.energy, self.power, self.time])
-        df.index = ["timestamp", "total_energy_consumption", "average_power", "time_elapsed"]
+        df = pandas.DataFrame(columns=["timestamp", "total_energy_consumption", "average_power", "time_elapsed"])
+        data = {
+            "timestamp": timestamp,
+            "total_energy_consumption": self.energy,
+            "average_power": self.power,
+            "time_elapsed": self.time
+        }
+        df = df.append(data, ignore_index=True)
         df.to_csv(f"{filename}.csv")
 
     def import_data(self, filename):
@@ -30,7 +36,7 @@ class PerfParser(Parser):
             lines = f.readlines()
             self.energy = float(lines[5].strip(" ").split(" ")[0])
             self.time = float(lines[7].strip(" ").split(" ")[0])
-            self.power = self.energy / self. time
+            self.power = self.energy / self.time
 
 
 class PowerLogParser(Parser):
@@ -42,10 +48,9 @@ class PowerLogParser(Parser):
         """Imports data from a csv file outputted by PowerLog."""
         with open(filename + ".csv", "r") as file:
             lines = file.readlines()
-            self.time = float(lines[-14].split(" = ")[1][:-2])
-            self.power = float(lines[-9].split(" = ")[1][:-2])
             self.energy = float(lines[-11].split(" = ")[1][:-2])
-            # print(self.time)
+            self.power = float(lines[-9].split(" = ")[1][:-2])
+            self.time = float(lines[-14].split(" = ")[1][:-2])
 
 
 if __name__ == '__main__':
