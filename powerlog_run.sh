@@ -1,4 +1,7 @@
 #!/bin/bash
 
-PL="/Applications/Intel\ Power\ Gadget/PowerLog"
-eval "$PL" -file temp.csv -cmd $1
+if [ -z "${FERNIVY_POWERLOG_PATH}" ]; then
+	FERNIVY_POWERLOG_PATH="/Applications/Intel\ Power\ Gadget/PowerLog"
+fi
+
+eval "$FERNIVY_POWERLOG_PATH" -file temp.csv -cmd $1
