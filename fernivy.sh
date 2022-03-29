@@ -190,13 +190,13 @@ if [[ $_s -eq 1 ]]; then
     echo ""
     IFS=',' read -ra ADDR <<< "$RESULT"
     if [[ $_e -eq 1 ]]; then
-        echo "Total energy consumption: "${ADDR[2]}" J"
+        echo "Average total energy consumption: "${ADDR[2]}" J"
     fi
     if [[ $_p -eq 1 ]]; then
         echo "Average power: "${ADDR[3]}" W"
     fi
     if [[ $_t -eq 1 ]]; then
-        echo "Total time elapsed: "${ADDR[4]}" s"
+        echo "Average total time elapsed: "${ADDR[4]//[$'\t\r\n ']}" s"
     fi
     echo ""
 fi
