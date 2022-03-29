@@ -10,18 +10,34 @@ log() {
     fi
 }
 
+loading_bar(){
+	STRING="|"
+	for (( j=0; j<$2;         j++ )); do STRING+="#"; done
+	for (( k=0; k<$(($1-$2)); k++ )); do STRING+="-"; done
+	STRING+="| ${2}/${1}"
+	
+	if [ $2 -lt $1 ]; then
+		echo -ne "$STRING\r"
+		sleep $SLP
+	else
+		echo "$STRING"
+	fi
+}
+
 print_help() {
     # Display Help
-    echo "syntax: prototype [-h] [-l] [-s seconds_to_run | -c command_to_run] [-e] [-p] [-t] [-o output_file_name | -f output_file_folder]"
+    echo "syntax: prototype [-h] [-l] [-s seconds_to_run | -c command_to_run] [-r number_of_runs] [-b seconds_between_runs] [-e] [-p] [-t] [-o output_file_name | -f output_file_folder]"
     echo "options:"
+    echo "b     Set the number of second to pause between runs."
     echo "c     Run for specified command. Put the entire command in quotation marks if it is longer than one word."
     echo "e     Print total energy consumption."
     echo "f     Set the folder in which to save the output file. If it does not exist, it will be created."
     echo "h     Print this Help."
     echo "l     Run in logging mode."
-    echo "o     Set output file. The path to the file has to exist. Cannot be \"temp\"."
+    echo "o     Set output file. The path to the file has to exist. It cannot start with \"temp\"."
     echo "p     Print average power."
-    echo "s     Run for specified amount of seconds."
+    echo "r     Set the number of times to run."
+    echo "s     Run for specified number of seconds."
     echo "t     Print total execution time."
     echo
 }
@@ -55,6 +71,8 @@ DT=`date | tr -d ' :'`
 TOOL=perf
 
 SECS=60
+RUNS=1
+SLP=30
 OUTPUT=output_$DT
 _l=0
 
@@ -70,8 +88,10 @@ _t=0 # time elapsed
 # Process the input options.                               #
 ############################################################
 
-while getopts ":c:ef:hlo:ps:t" option; do
+while getopts ":b:c:ef:hlo:pr:s:t" option; do
     case $option in
+        b) # set break between runs
+            SLP=$OPTARG;;
         c) # set to running for a command
             set_mode "CMD"
             CMD=$OPTARG
@@ -93,6 +113,9 @@ while getopts ":c:ef:hlo:ps:t" option; do
         p) # set power flag
             _s=1
             _p=1;;
+        r) # set number of runs
+            RUNS=$OPTARG
+            log echo "Number of runs set to: "$RUNS;;
         s) # set amount of seconds to run
             set_mode "TIMED"
             SECS=$OPTARG
@@ -122,8 +145,8 @@ if [[ $_f -eq 1 ]]; then
         log echo "Created folder: "$FLDR
     fi
 else
-    if [[ $OUTPUT = "temp" ]]; then
-        echo "You cannot set the output file to be \"temp\"."
+    if [[ $OUTPUT = temp* ]]; then
+        echo "You cannot set the output file to start with \"temp\"."
         exit
     fi
 fi
@@ -137,55 +160,45 @@ log echo
 
 if [[ $MODE = "CMD" ]]; then
     echo "Measuring command: "$CMD
+    echo ""
+    echo ""
 else
     CMD="sleep "$SECS
 fi
 
 chmod +x $TOOL"_run.sh"
-"./"$TOOL"_run.sh" "$CMD" &>/dev/null
 
-python3 parser.py -m $TOOL -t $DT -o $OUTPUT
+for (( i=0; i<RUNS; i++ ))
+do
+    "./"$TOOL"_run.sh" $i "$CMD" &>/dev/null
+
+	loading_bar $RUNS $(($i+1))
+done
+
+python3 parser.py -m $TOOL -t $DT -r $RUNS -o $OUTPUT
 
 if [[ $TOOL = "perf" ]] && [[ $_s -ne 2 ]]; then
-    rm -f temp.txt
+    rm -f temp*.txt
 elif [[ $TOOL = "powerlog" ]] || [[ $_s -eq 2 ]]; then
-    rm -f temp.csv
+    rm -f temp*.csv
 fi
 
 if [[ $_s -eq 1 ]]; then
 
-    RESULT=$( cat $OUTPUT.csv | sed -n 2p )
+    RESULT=$( sed -n '$p' $OUTPUT.csv )
     
-    THING="i"
-    
+    echo ""
     IFS=',' read -ra ADDR <<< "$RESULT"
-    for i in "${ADDR[@]}"; do
-        # index
-        if [[ $THING = "i" ]]; then
-            THING="ts"
-        # timestamp
-        elif [[ $THING = "ts" ]]; then
-            THING="e"
-        # energy consumption
-        elif [[ $THING = "e" ]]; then
-            if [[ $_e -eq 1 ]]; then
-                echo "Total energy consumption: "$i" J"
-            fi
-            THING="p"
-        # power
-        elif [[ $THING = "p" ]]; then
-            if [[ $_p -eq 1 ]]; then
-                echo "Average power: "$i" W"
-            fi
-            THING="t"
-        # time elapsed
-        elif [[ $THING = "t" ]]; then
-            if [[ $_t -eq 1 ]]; then
-                echo "Total time elapsed: "$i" s"
-            fi
-            THING=""
-        fi
-    done
+    if [[ $_e -eq 1 ]]; then
+        echo "Total energy consumption: "${ADDR[2]}" J"
+    fi
+    if [[ $_p -eq 1 ]]; then
+        echo "Average power: "${ADDR[3]}" W"
+    fi
+    if [[ $_t -eq 1 ]]; then
+        echo "Total time elapsed: "${ADDR[4]}" s"
+    fi
+    echo ""
 fi
 
 echo "Results exported to: "$OUTPUT".csv"

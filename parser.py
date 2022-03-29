@@ -2,36 +2,78 @@ from argparse import ArgumentParser
 import csv
 
 
-class Parser:
+class Processor:
 
-    def __init__(self, timestamp, output_filename, input_filename):
-        self.energy, self.power, self.time = None, None, None
+    def __init__(self, measurement, timestamp, runs, input_filename, output_filename):
+        self.data = []
+        self.measurement = measurement
+        self.runs = runs
+
         self.import_data(input_filename)
         self.export_data(timestamp, output_filename)
 
     def export_data(self, timestamp, filename):
         columns = ["index", "timestamp", "total_energy_consumption", "average_power", "time_elapsed"]
-        data = {
-            "index": 0,
+        with open(filename + ".csv", 'w') as csvfile:
+            writer = csv.DictWriter(csvfile, fieldnames=columns)
+            writer.writeheader()
+            for i, result in enumerate(self.data):
+                row = result.export_data(timestamp, i)
+                writer.writerow(row)
+            writer.writerow({})
+            writer.writerow(self.get_avg())
+
+    def get_avg(self):
+        energy = 0
+        power = 0
+        time = 0
+        for result in self.data:
+            energy += result.energy
+            power  += result.power
+            time   += result.time
+        return {
+            "index": "avg",
+            "timestamp": "",
+            "total_energy_consumption": energy / len(self.data),
+            "average_power": power / len(self.data),
+            "time_elapsed": time / len(self.data)
+        }
+
+    def import_data(self, filename):
+        for i in range(self.runs):
+            f = filename + str(i)
+            if self.measurement == "powerlog":
+                p = PowerLogResult(f)
+            elif self.measurement == "perf":
+                p = PerfResult(f)
+            else:
+                raise ValueError("Invalid measurement type.")
+            self.data.append(p)
+
+
+class Result:
+
+    def __init__(self, input_filename):
+        self.energy, self.power, self.time = None, None, None
+        self.import_data(input_filename)
+
+    def export_data(self, timestamp, index):
+        return {
+            "index": index,
             "timestamp": timestamp,
             "total_energy_consumption": self.energy,
             "average_power": self.power,
             "time_elapsed": self.time
         }
 
-        with open(filename + ".csv", 'w') as csvfile:
-            writer = csv.DictWriter(csvfile, fieldnames=columns)
-            writer.writeheader()
-            writer.writerow(data)
-
     def import_data(self, filename):
         pass
 
 
-class PerfParser(Parser):
+class PerfResult(Result):
 
-    def __init__(self, timestamp, output_filename, input_filename):
-        super().__init__(timestamp, output_filename, input_filename)
+    def __init__(self, input_filename):
+        super().__init__(input_filename)
 
     def import_data(self, filename):
         """Imports data from a txt file outputted by Perf."""
@@ -42,10 +84,10 @@ class PerfParser(Parser):
             self.power = self.energy / self.time
 
 
-class PowerLogParser(Parser):
+class PowerLogResult(Result):
 
-    def __init__(self, timestamp, output_filename, input_filename):
-        super().__init__(timestamp, output_filename, input_filename)
+    def __init__(self, input_filename):
+        super().__init__(input_filename)
 
     def import_data(self, filename):
         """Imports data from a csv file outputted by PowerLog."""
@@ -60,6 +102,7 @@ if __name__ == '__main__':
     parser = ArgumentParser()
     parser.add_argument('-m', '--measurement', required=True, type=str, help="Measuring tool used.")
     parser.add_argument('-t', '--timestamp', required=True, type=str, help="Timestamp of when measurement started.")
+    parser.add_argument('-r', '--runs', required=True, type=int, help="Number of runs.")
     parser.add_argument('-o-', '--output', required=True, type=str, help="Name of CSV file for output.")
     parser.add_argument('-i', '--input', required=False, type=str, help="File with raw data.")
     args = parser.parse_args()
@@ -67,7 +110,4 @@ if __name__ == '__main__':
     if args.input is None:
         args.input = "temp"
 
-    if args.measurement == "powerlog":
-        PowerLogParser(args.timestamp, args.output, args.input)
-    elif args.measurement == "perf":
-        PerfParser(args.timestamp, args.output, args.input)
+    Processor(args.measurement, args.timestamp, args.runs, args.input, args.output)
