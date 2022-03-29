@@ -4,22 +4,21 @@ import csv
 
 class Processor:
 
-    def __init__(self, measurement, timestamp, runs, input_filename, output_filename):
+    def __init__(self, measurement, runs, input_filename, output_filename):
         self.data = []
         self.measurement = measurement
         self.runs = runs
 
         self.import_data(input_filename)
-        self.export_data(timestamp, output_filename)
+        self.export_data(output_filename)
 
-    def export_data(self, timestamp, filename):
+    def export_data(self, filename):
         columns = ["index", "timestamp", "total_energy_consumption", "average_power", "time_elapsed"]
         with open(filename + ".csv", 'w') as csvfile:
             writer = csv.DictWriter(csvfile, fieldnames=columns)
             writer.writeheader()
             for i, result in enumerate(self.data):
-                row = result.export_data(timestamp, i)
-                writer.writerow(row)
+                writer.writerow(result.export_data(i))
             writer.writerow({})
             writer.writerow(self.get_avg())
 
@@ -54,13 +53,13 @@ class Processor:
 class Result:
 
     def __init__(self, input_filename):
-        self.energy, self.power, self.time = None, None, None
+        self.timestamp, self.energy, self.power, self.time = None, None, None, None
         self.import_data(input_filename)
 
-    def export_data(self, timestamp, index):
+    def export_data(self, index):
         return {
             "index": index,
-            "timestamp": timestamp,
+            "timestamp": self.timestamp,
             "total_energy_consumption": self.energy,
             "average_power": self.power,
             "time_elapsed": self.time
@@ -79,6 +78,8 @@ class PerfResult(Result):
         """Imports data from a txt file outputted by Perf."""
         with open(filename + ".txt", "r") as f:
             lines = f.readlines()
+            # TueMar29160704CEST2022
+            self.timestamp = " ".join(lines[0].split(" ")[3:]).strip()
             self.energy = float(lines[5].strip(" ").split(" ")[0])
             self.time = float(lines[7].strip(" ").split(" ")[0])
             self.power = self.energy / self.time
@@ -101,7 +102,6 @@ class PowerLogResult(Result):
 if __name__ == '__main__':
     parser = ArgumentParser()
     parser.add_argument('-m', '--measurement', required=True, type=str, help="Measuring tool used.")
-    parser.add_argument('-t', '--timestamp', required=True, type=str, help="Timestamp of when measurement started.")
     parser.add_argument('-r', '--runs', required=True, type=int, help="Number of runs.")
     parser.add_argument('-o-', '--output', required=True, type=str, help="Name of CSV file for output.")
     parser.add_argument('-i', '--input', required=False, type=str, help="File with raw data.")
@@ -110,4 +110,4 @@ if __name__ == '__main__':
     if args.input is None:
         args.input = "temp"
 
-    Processor(args.measurement, args.timestamp, args.runs, args.input, args.output)
+    Processor(args.measurement, args.runs, args.input, args.output)

@@ -6,7 +6,7 @@
 
 log() {
     if [[ $_l -eq 1 ]]; then
-        $@
+        "$@"
     fi
 }
 
@@ -175,7 +175,7 @@ do
 	loading_bar $RUNS $(($i+1))
 done
 
-python3 parser.py -m $TOOL -t $DT -r $RUNS -o $OUTPUT
+python3 parser.py -m $TOOL -r $RUNS -o $OUTPUT
 
 if [[ $TOOL = "perf" ]] && [[ $_s -ne 2 ]]; then
     rm -f temp*.txt
