@@ -43,7 +43,6 @@ print_help() {
     echo "l     Run in logging mode."
     echo "o     Set output file."
     echo "      The path to the file has to exist."
-    echo "      It cannot start with \"temp\"."
     echo "p     Print average power."
     echo "r     Set the number of times to run."
     echo "s     Run for specified number of seconds."
@@ -155,11 +154,6 @@ if [[ $_f -eq 1 ]]; then
         mkdir -p $FLDR
         log echo "Created folder: "$FLDR
     fi
-else
-    if [[ $OUTPUT = temp* ]]; then
-        echo "You cannot set the output file to start with \"temp\"."
-        exit
-    fi
 fi
 log echo "Output file set to: "$OUTPUT
 
@@ -177,16 +171,18 @@ else
     CMD="sleep "$SECS
 fi
 
+TMP=$( mktemp )
 for (( i=0; i<RUNS; i++ ))
 do
-    "./"$TOOL"_run.sh" $i "$CMD" &>/dev/null
+    F=$( mktemp )
+    "./"$TOOL"_run.sh" $F "$CMD" &>/dev/null
 
-	loading_bar $RUNS $(($i+1))
+    echo $F >> $TMP
+
+	  loading_bar $RUNS $(($i+1))
 done
 
-python3 parser.py -m $TOOL -r $RUNS -o $OUTPUT
-
-#rm -f temp*
+python3 parser.py -m $TOOL -o $OUTPUT -i $TMP
 
 if [[ $_s -eq 1 ]]; then
 
