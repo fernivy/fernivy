@@ -15,7 +15,7 @@ loading_bar(){
 	for (( j=0; j<$2;         j++ )); do STRING+="#"; done
 	for (( k=0; k<$(($1-$2)); k++ )); do STRING+="-"; done
 	STRING+="| ${2}/${1}"
-	
+
 	if [ $2 -lt $1 ]; then
 		echo -ne "$STRING\r"
 		sleep $SLP
@@ -77,12 +77,12 @@ set_mode() {
 
 DT=`date | tr -d ' :'`
 
-TOOL=perf
+TOOL=powerlog
 
 SECS=60
 RUNS=1
 SLP=30
-OUTPUT=output_$DT
+OUTPUT=output_$DT.csv
 _l=0
 
 _m=0 # bool for setting mode
@@ -193,7 +193,7 @@ fi
 if [[ $_s -eq 1 ]]; then
 
     RESULT=$( sed -n '$p' $OUTPUT )
-    
+
     echo ""
     IFS=',' read -ra ADDR <<< "$RESULT"
     if [[ $_e -eq 1 ]]; then
