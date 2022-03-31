@@ -1,0 +1,3 @@
+fernivy usr/bin
+perf_run.sh usr/lib
+parser.py usr/lib

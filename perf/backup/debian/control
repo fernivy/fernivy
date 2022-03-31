@@ -1,0 +1,11 @@
+Source: fernivy
+Section: admin
+Maintainer: FernIvy
+
+Package: fernivy
+Version: 1.0.0
+Architecture: all
+Depends: python3,
+         linux-perf
+Homepage: https://fernivy.github.io/docs/
+Description: A uniform tool for measuring energy consumption

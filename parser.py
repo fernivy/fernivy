@@ -2,14 +2,28 @@ from argparse import ArgumentParser
 import csv
 
 
+class FileList:
+
+    def __init__(self, filename):
+        self._files = [line.strip() for line in open(filename)]
+
+    @property
+    def files(self):
+        return self._files
+
+    @property
+    def size(self):
+        return len(self._files)
+
+
 class Processor:
 
-    def __init__(self, measurement, runs, input_filename, output_filename):
+    def __init__(self, measurement, input_files, output_filename):
         self.data = []
         self.measurement = measurement
-        self.runs = runs
+        self.runs = input_files.size
 
-        self.import_data(input_filename)
+        self.import_data(input_files)
         self.export_data(output_filename)
 
     def export_data(self, filename):
@@ -38,9 +52,9 @@ class Processor:
             "time_elapsed": time / len(self.data)
         }
 
-    def import_data(self, filename):
+    def import_data(self, files):
         for i in range(self.runs):
-            f = filename + str(i)
+            f = files.files[i]
             if self.measurement == "powerlog":
                 p = PowerLogResult(f)
             elif self.measurement == "perf":
@@ -76,7 +90,7 @@ class PerfResult(Result):
 
     def import_data(self, filename):
         """Imports data from a txt file outputted by Perf."""
-        with open(filename + ".txt", "r") as f:
+        with open(filename, "r") as f:
             lines = f.readlines()
             # TueMar29160704CEST2022
             self.timestamp = " ".join(lines[0].split(" ")[3:]).strip()
@@ -92,7 +106,7 @@ class PowerLogResult(Result):
 
     def import_data(self, filename):
         """Imports data from a csv file outputted by PowerLog."""
-        with open(filename + ".csv", "r") as file:
+        with open(filename, "r") as file:
             lines = file.readlines()
             self.energy = float(lines[-11].split(" = ")[1][:-2])
             self.power = float(lines[-9].split(" = ")[1][:-2])
@@ -102,12 +116,9 @@ class PowerLogResult(Result):
 if __name__ == '__main__':
     parser = ArgumentParser()
     parser.add_argument('-m', '--measurement', required=True, type=str, help="Measuring tool used.")
-    parser.add_argument('-r', '--runs', required=True, type=int, help="Number of runs.")
     parser.add_argument('-o-', '--output', required=True, type=str, help="Name of CSV file for output.")
-    parser.add_argument('-i', '--input', required=False, type=str, help="File with raw data.")
+    parser.add_argument('-i', '--input', required=True, type=str, help="File with filenames which contain raw data.")
     args = parser.parse_args()
 
-    if args.input is None:
-        args.input = "temp"
-
-    Processor(args.measurement, args.runs, args.input, args.output)
+    temp = FileList(args.input)
+    Processor(args.measurement, temp, args.output)
