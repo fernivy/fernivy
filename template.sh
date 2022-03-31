@@ -77,7 +77,7 @@ set_mode() {
 
 DT=`date | tr -d ' :'`
 
-TOOL=powerlog
+TOOL=perf
 
 SECS=60
 RUNS=1
