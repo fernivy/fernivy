@@ -184,11 +184,7 @@ done
 
 python3 parser.py -m $TOOL -r $RUNS -o $OUTPUT
 
-if [[ $TOOL = "perf" ]]; then
-    rm -f temp*.txt
-elif [[ $TOOL = "powerlog" ]]; then
-    rm -f temp*.csv
-fi
+rm -f temp*
 
 if [[ $_s -eq 1 ]]; then
 
