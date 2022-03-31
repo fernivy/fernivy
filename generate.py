@@ -14,6 +14,12 @@ class Config:
         return self._configs
 
 
+"""
+This generator:
+* replaces all occurences of "$TOOL" with "powerlog",
+* skips the line assigning the TOOL variable,
+* skips the line asking for root access.
+"""
 def generate_powerlog():
     # input file
     fin = open("template.sh", "rt")
@@ -21,7 +27,7 @@ def generate_powerlog():
     fout = open("powerlog/package/fernivy", "wt")
     # for each line in the input file
     for line in fin:
-        if line.startswith('TOOL='):
+        if line.startswith('TOOL=') or line.__contains__('$EUID'):
             continue
         # read replace the string and write to output file
         line = line\
@@ -33,6 +39,12 @@ def generate_powerlog():
     fout.close()
 
 
+"""
+This generator:
+* replaces all occurences of "$TOOL" with "perf",
+* sets the correct paths for the helper scripts,
+* skips the line assigning the TOOL variable.
+"""
 def generate_perf_fernivy():
     # input file
     fin = open("template.sh", "rt")
@@ -44,15 +56,18 @@ def generate_perf_fernivy():
             continue
         # read replace the string and write to output file
         line = line\
-            .replace('\"./\"$TOOL\"', '\"/usr/bin/perf')\
+            .replace('\"./\"$TOOL\"', '\"/usr/lib/perf')\
             .replace('$TOOL', 'perf')\
-            .replace('parser.py', '/usr/bin/parser.py')
+            .replace('parser.py', '/usr/lib/parser.py')
         fout.write(line)
     # close input and output files
     fin.close()
     fout.close()
 
 
+"""
+This generator creates the debian/control file for perf. 
+"""
 def generate_perf_control(conf):
     with open('perf/package/debian/control', 'w') as f:
         f.write("Source: " + conf.configs['package'] + "\n")

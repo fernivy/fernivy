@@ -97,6 +97,8 @@ _t=0 # time elapsed
 # Process the input options.                               #
 ############################################################
 
+if (( $EUID != 0 )); then echo "Please run as root!"; exit; fi
+
 while getopts ":b:c:ef:hlo:pr:s:t" option; do
     case $option in
         b) # set break between runs
@@ -184,7 +186,7 @@ done
 
 python3 parser.py -m $TOOL -r $RUNS -o $OUTPUT
 
-rm -f temp*
+#rm -f temp*
 
 if [[ $_s -eq 1 ]]; then
 

@@ -16,7 +16,6 @@ clean_powerlog:
 perf: clean_perf
 	@mkdir perf/package
 	@cp -r perf/backup/debian/ perf/package/debian/
-	@cp perf/backup/Makefile perf/package/Makefile
 	@python3 generate.py perf
 	@chmod +x perf/package/fernivy
 	@cp perf_run.sh perf/package/
