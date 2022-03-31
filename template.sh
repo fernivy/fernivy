@@ -96,7 +96,7 @@ _t=0 # time elapsed
 # Process the input options.                               #
 ############################################################
 
-if (( $EUID != 0 )); then echo "Please run as root!"; exit; fi
+# Request for sudo access
 
 while getopts ":b:c:ef:hlo:pr:s:t" option; do
     case $option in

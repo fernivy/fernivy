@@ -17,8 +17,7 @@ class Config:
 """
 This generator:
 * replaces all occurences of "$TOOL" with "powerlog",
-* skips the line assigning the TOOL variable,
-* skips the line asking for root access.
+* skips the line assigning the TOOL variable.
 """
 def generate_powerlog():
     # input file
@@ -27,8 +26,6 @@ def generate_powerlog():
     fout = open("powerlog/package/fernivy", "wt")
     # for each line in the input file
     for line in fin:
-        if line.startswith('TOOL=') or line.__contains__('$EUID'):
-            continue
         # read replace the string and write to output file
         line = line\
             .replace('$TOOL', 'powerlog')\
@@ -43,7 +40,8 @@ def generate_powerlog():
 This generator:
 * replaces all occurences of "$TOOL" with "perf",
 * sets the correct paths for the helper scripts,
-* skips the line assigning the TOOL variable.
+* skips the line assigning the TOOL variable,
+* adds the request for sudo access.
 """
 def generate_perf_fernivy():
     # input file
@@ -53,6 +51,9 @@ def generate_perf_fernivy():
     # for each line in the input file
     for line in fin:
         if line.startswith('TOOL='):
+            continue
+        if line.__contains__("Request for sudo access"):
+            fout.write("if (( $EUID != 0 )); then echo \"Please run as root!\"; exit; fi\n")
             continue
         # read replace the string and write to output file
         line = line\
