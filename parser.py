@@ -14,7 +14,7 @@ class Processor:
 
     def export_data(self, filename):
         columns = ["index", "timestamp", "total_energy_consumption", "average_power", "time_elapsed"]
-        with open(filename + ".csv", 'w') as csvfile:
+        with open(filename, 'w') as csvfile:
             writer = csv.DictWriter(csvfile, fieldnames=columns)
             writer.writeheader()
             for i, result in enumerate(self.data):

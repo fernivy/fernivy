@@ -26,15 +26,24 @@ loading_bar(){
 
 print_help() {
     # Display Help
-    echo "syntax: prototype [-h] [-l] [-s seconds_to_run | -c command_to_run] [-r number_of_runs] [-b seconds_between_runs] [-e] [-p] [-t] [-o output_file_name | -f output_file_folder]"
+    echo "syntax:"
+    echo "  fernivy [-h] [-l]"
+    echo "          [-s seconds_to_run | -c command_to_run]"
+    echo "          [-r number_of_runs] [-b seconds_between_runs]"
+    echo "          [-e] [-p] [-t]"
+    echo "          [-o output_file_name] [-f output_file_folder]"
     echo "options:"
     echo "b     Set the number of second to pause between runs."
-    echo "c     Run for specified command. Put the entire command in quotation marks if it is longer than one word."
+    echo "c     Run for specified command."
+    echo "      Put the entire command in quotation marks if it is longer than one word."
     echo "e     Print total energy consumption."
-    echo "f     Set the folder in which to save the output file. If it does not exist, it will be created."
+    echo "f     Set the folder in which to save the output file."
+    echo "      If it does not exist, it will be created."
     echo "h     Print this Help."
     echo "l     Run in logging mode."
-    echo "o     Set output file. The path to the file has to exist. It cannot start with \"temp\"."
+    echo "o     Set output file."
+    echo "      The path to the file has to exist."
+    echo "      It cannot start with \"temp\"."
     echo "p     Print average power."
     echo "r     Set the number of times to run."
     echo "s     Run for specified number of seconds."
@@ -141,7 +150,7 @@ fi
 if [[ $_f -eq 1 ]]; then
     OUTPUT=$FLDR"/"$OUTPUT
     if [ ! -d $FLDR ]; then
-        mkdir $FLDR
+        mkdir -p $FLDR
         log echo "Created folder: "$FLDR
     fi
 else
@@ -166,8 +175,6 @@ else
     CMD="sleep "$SECS
 fi
 
-chmod +x $TOOL"_run.sh"
-
 for (( i=0; i<RUNS; i++ ))
 do
     "./"$TOOL"_run.sh" $i "$CMD" &>/dev/null
@@ -177,15 +184,15 @@ done
 
 python3 parser.py -m $TOOL -r $RUNS -o $OUTPUT
 
-if [[ $TOOL = "perf" ]] && [[ $_s -ne 2 ]]; then
+if [[ $TOOL = "perf" ]]; then
     rm -f temp*.txt
-elif [[ $TOOL = "powerlog" ]] || [[ $_s -eq 2 ]]; then
+elif [[ $TOOL = "powerlog" ]]; then
     rm -f temp*.csv
 fi
 
 if [[ $_s -eq 1 ]]; then
 
-    RESULT=$( sed -n '$p' $OUTPUT.csv )
+    RESULT=$( sed -n '$p' $OUTPUT )
     
     echo ""
     IFS=',' read -ra ADDR <<< "$RESULT"
@@ -201,4 +208,4 @@ if [[ $_s -eq 1 ]]; then
     echo ""
 fi
 
-echo "Results exported to: "$OUTPUT".csv"
+echo "Results exported to: "$OUTPUT
