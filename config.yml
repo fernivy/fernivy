@@ -1,6 +1,6 @@
 package: fernivy
 maintainer: FernIvy
-version: 1.0.2
+version: 1.1.0
 python: python3
 website: https://fernivy.github.io/docs/
 description: A uniform tool for measuring energy consumption 
