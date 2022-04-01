@@ -87,10 +87,7 @@ def generate_powerlog(conf):
     # installation from source
     generate_fernivy("powerlog",
                      lambda line:
-                     line.replace(
-                         "$TOOL\"/backup/\"$TOOL\"_run.sh\"",
-                         "./powerlog/package/powerlog_run.sh")
-                     .replace("parser.py", "./powerlog/package/parser.py")
+                     line.replace("$TOOL\"/backup/\"$TOOL\"_run.sh\"", "./powerlog_run.sh")
                      )
     # installation through homebrew
     generate_fernivy("powerlog",

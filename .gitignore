@@ -9,6 +9,7 @@ venv/
 output_*.csv
 
 **/package/
+**/package-brew/
 
 *.dsc
 *.tar.gz

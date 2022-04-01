@@ -3,6 +3,9 @@
 All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
+
+## [v1.2.0] 1 April 2022
+- Added `package-brew` generator for PowerLog (works with `homebrew` packaging)
 - Edited the README to contains up-to-date information
 - Created the CONTRIBUTING.md
 - Created the CHANGELOG.md
