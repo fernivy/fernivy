@@ -6,9 +6,12 @@ perf: clean_perf
 	@python3 generate.py perf
 	@chmod +x perf/package/fernivy
 	@chmod +x perf/package/perf_run.sh
+	@chmod +x perf/package-deb/fernivy
+	@chmod +x perf/package-deb/perf_run.sh
 
 clean_perf:
 	@rm -rf perf/package
+	@rm -rf perf/package-deb
 
 powerlog: clean_powerlog
 	@python3 generate.py powerlog

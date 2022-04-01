@@ -25,6 +25,9 @@ def generate_fernivy(tool, replace, package="package"):
     * skips the line assigning the TOOL variable,
     * applies the specific replacement function,
     * replaces all remaining occurrences of "$TOOL" with the name of the tool.
+    :param tool: The name of the tool that was used for the measurement.
+    :param replace: The function that edits the string.
+    :param package: The package into which we are generating this.
     """
     # input file
     fin = open("template.sh", "rt")
@@ -42,12 +45,13 @@ def generate_fernivy(tool, replace, package="package"):
     fout.close()
 
 
-def generate_perf_control(conf):
+def generate_perf_control(conf, package="package"):
     """
     This generator creates the debian/control file for perf.
     :param conf: The configuration of the project.
+    :param package: The package into which we are generating this.
     """
-    with open("perf/package/debian/control", "w") as f:
+    with open(f"perf/{package}/debian/control", "w") as f:
         f.write("Source: " + conf.configs["package"] + "\n")
         f.write("Section: admin" + "\n")
         f.write("Maintainer: " + conf.configs["maintainer"] + "\n")
@@ -59,12 +63,13 @@ def generate_perf_control(conf):
         f.write("Description: " + conf.configs["description"] + "\n")
 
 
-def generate_perf_changelog(conf):
+def generate_perf_changelog(conf, package="package"):
     """
     This generator creates the debian/changelog file for perf.
     :param conf: The configuration of the project.
+    :param package: The package into which we are generating this.
     """
-    with open("perf/package/debian/changelog", "w") as f:
+    with open(f"perf/{package}/debian/changelog", "w") as f:
         f.write("fernivy (" + conf.configs["version"] + ") stable; urgency=low\n\n")
         f.write("Please check out the repository for release information:"
                 " https://github.com/fernivy/fernivy/blob/main/CHANGELOG.md\n\n")
@@ -78,6 +83,17 @@ def generate_perf(conf):
     :param conf: The configuration of the project.
     """
     shutil.copytree("perf/backup/", "perf/package/")
+    shutil.copytree("perf/backup/", "perf/package-deb/")
+    # installation from source
+    generate_fernivy("perf",
+                     lambda line:
+                     line.replace(
+                         "# Request for sudo access when needed",
+                         "if (( $EUID != 0 )); then echo \"Please run as root!\"; exit; fi"
+                     )
+                     .replace("$TOOL\"/backup/\"$TOOL\"_run.sh\"", "./perf_run.sh")
+                     )
+    # installation through deb
     generate_fernivy("perf",
                      lambda line:
                      line.replace(
@@ -85,11 +101,13 @@ def generate_perf(conf):
                          "if (( $EUID != 0 )); then echo \"Please run as root!\"; exit; fi"
                      )
                      .replace("$TOOL\"/backup/\"$TOOL\"_run.sh\"", "/usr/lib/perf_run.sh")
-                     .replace("parser.py", "/usr/lib/parser.py")
+                     .replace("parser.py", "/usr/lib/parser.py"),
+                     package="package-deb"
                      )
-    generate_perf_control(conf)
-    generate_perf_changelog(conf)
+    generate_perf_control(conf, package="package-deb")
+    generate_perf_changelog(conf, package="package-deb")
     shutil.copyfile("parser.py", "perf/package/parser.py")
+    shutil.copyfile("parser.py", "perf/package-deb/parser.py")
 
 
 def generate_powerlog(conf):
