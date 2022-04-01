@@ -1,4 +1,5 @@
 import sys, shutil
+from datetime import datetime
 
 
 class Config:
@@ -52,11 +53,23 @@ def generate_perf_control(conf):
         f.write("Maintainer: " + conf.configs["maintainer"] + "\n")
         f.write("\n")
         f.write("Package: " + conf.configs["package"] + "\n")
-        f.write("Version: " + conf.configs["version"] + "\n")
         f.write("Architecture: all" + "\n")
         f.write("Depends: " + conf.configs["python"] + ",\n         linux-perf" + "\n")
         f.write("Homepage: " + conf.configs["website"] + "\n")
         f.write("Description: " + conf.configs["description"] + "\n")
+
+
+def generate_perf_changelog(conf):
+    """
+    This generator creates the debian/changelog file for perf.
+    :param conf: The configuration of the project.
+    """
+    with open("perf/package/debian/changelog", "w") as f:
+        f.write("fernivy (" + conf.configs["version"] + ") stable; urgency=low\n\n")
+        f.write("Please check out the repository for release information:"
+                " https://github.com/fernivy/fernivy/blob/main/CHANGELOG.md\n\n")
+        # Thu, 31 Mar 2022 08:36:00 +0100
+        f.write(" -- FernIvy " + datetime.now().strftime("%a, %d %b %Y %H:%M:%S"))
 
 
 def generate_perf(conf):
@@ -75,6 +88,7 @@ def generate_perf(conf):
                      .replace("parser.py", "/usr/lib/parser.py")
                      )
     generate_perf_control(conf)
+    generate_perf_changelog(conf)
     shutil.copyfile("parser.py", "perf/package/parser.py")
 
 
