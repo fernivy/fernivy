@@ -11,17 +11,18 @@ log() {
 }
 
 loading_bar(){
-	STRING="|"
-	for (( j=0; j<$2;         j++ )); do STRING+="#"; done
-	for (( k=0; k<$(($1-$2)); k++ )); do STRING+="-"; done
-	STRING+="| ${2}/${1}"
+    STRING="|"
+    for (( j=0; j<$2;         j++ )); do STRING+="#"; done
+    for (( k=0; k<$(($1-$2)); k++ )); do STRING+="-"; done
+    STRING+="| ${2}/${1}"
 
-	if [ $2 -lt $1 ]; then
-		echo -ne "$STRING\r"
-		sleep $SLP
-	else
-		echo "$STRING"
-	fi
+    if [ $2 -lt $1 ]; then
+        # if it is not the last iteration, overwrite previous bar
+        echo -ne "$STRING\r"
+        sleep $SLP
+    else
+        echo "$STRING"
+    fi
 }
 
 print_help() {
@@ -78,11 +79,11 @@ DT=$( date | tr -d ' :' )
 
 TOOL=perf
 
-SECS=60
-RUNS=1
-SLP=30
-OUTPUT=output_$DT.csv
-_l=0
+SECS=60 # set the default seconds to measure to 60
+RUNS=1 # set the default number of runs to 1
+SLP=30 # set the default break between runs to 30 seconds
+OUTPUT=output_$DT.csv # set the default output file
+_l=0 # bool for logging mode
 
 _m=0 # bool for setting mode
 _f=0 # bool for setting folder
@@ -96,7 +97,7 @@ _t=0 # time elapsed
 # Process the input options.                               #
 ############################################################
 
-# Request for sudo access
+# Request for sudo access when needed
 
 while getopts ":b:c:ef:hlo:pr:s:t" option; do
     case $option in
@@ -143,6 +144,7 @@ while getopts ":b:c:ef:hlo:pr:s:t" option; do
 done
 
 if [[ $_m -eq 0 ]]; then
+    # if the mode is not set, default to timed
     MODE="TIMED"
     _m=1
     log echo "Mode is set to: "$MODE
@@ -151,6 +153,7 @@ fi
 if [[ $_f -eq 1 ]]; then
     OUTPUT=$FLDR"/"$OUTPUT
     if [ ! -d $FLDR ]; then
+        # if the folder doesn't exist, create it
         mkdir -p $FLDR
         log echo "Created folder: "$FLDR
     fi
@@ -171,32 +174,36 @@ else
     CMD="sleep "$SECS
 fi
 
-TMP=$( mktemp )
-for (( i=0; i<RUNS; i++ ))
-do
-    F=$( mktemp )
-    "./"$TOOL"_run.sh" $F "$CMD" &>/dev/null
+loading_bar $RUNS 0 # start up the loading bar
 
-    echo $F >> $TMP
+TMP=$( mktemp ) # create a temporary file to store file names
+for (( i=0; i<RUNS; i++ )); do
+    F=$( mktemp ) # create a temporary file to generate to
+    "./"$TOOL"_run.sh" $F "$CMD" &>/dev/null # run the tool
 
-	  loading_bar $RUNS $(($i+1))
+    echo $F >> $TMP # add the name of the file to the TMP file
+
+	  loading_bar $RUNS $(($i+1)) # update the loading bar
 done
 
+# call the parser
 python3 parser.py -m $TOOL -o $OUTPUT -i $TMP
 
 if [[ $_s -eq 1 ]]; then
-
-    RESULT=$( sed -n '$p' $OUTPUT )
+    RESULT=$( sed -n '$p' $OUTPUT ) # read the results
 
     echo ""
     IFS=',' read -ra ADDR <<< "$RESULT"
     if [[ $_e -eq 1 ]]; then
+        # print the average energy consumption (-e)
         echo "Average total energy consumption: "${ADDR[2]}" J"
     fi
     if [[ $_p -eq 1 ]]; then
+        # print the average power (-p)
         echo "Average power: "${ADDR[3]}" W"
     fi
     if [[ $_t -eq 1 ]]; then
+        # print the average time elapsed (-t)
         echo "Average total time elapsed: "${ADDR[4]//[$'\t\r\n ']}" s"
     fi
     echo ""

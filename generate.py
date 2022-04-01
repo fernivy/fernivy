@@ -1,6 +1,9 @@
 import sys
 
 class Config:
+    """
+    The class which deals with the configurations of the project.
+    """
 
     def __init__(self, filename):
         self._configs = {}
@@ -14,12 +17,12 @@ class Config:
         return self._configs
 
 
-"""
-This generator:
-* replaces all occurrences of "$TOOL" with "powerlog",
-* skips the line assigning the TOOL variable.
-"""
 def generate_powerlog():
+    """
+    This generator:
+    * replaces all occurrences of "$TOOL" with "powerlog",
+    * skips the line assigning the TOOL variable.
+    """
     # input file
     fin = open("template.sh", "rt")
     # output file to write the result to
@@ -38,14 +41,14 @@ def generate_powerlog():
     fout.close()
 
 
-"""
-This generator:
-* replaces all occurrences of "$TOOL" with "perf",
-* sets the correct paths for the helper scripts,
-* skips the line assigning the TOOL variable,
-* adds the request for sudo access.
-"""
 def generate_perf_fernivy():
+    """
+    This generator:
+    * replaces all occurrences of "$TOOL" with "perf",
+    * sets the correct paths for the helper scripts,
+    * skips the line assigning the TOOL variable,
+    * adds the request for sudo access.
+    """
     # input file
     fin = open("template.sh", "rt")
     # output file to write the result to
@@ -54,7 +57,7 @@ def generate_perf_fernivy():
     for line in fin:
         if line.startswith('TOOL='):
             continue
-        if line.__contains__("Request for sudo access"):
+        if line.__contains__("Request for sudo access when needed"):
             fout.write("if (( $EUID != 0 )); then echo \"Please run as root!\"; exit; fi\n")
             continue
         # read replace the string and write to output file
@@ -68,10 +71,11 @@ def generate_perf_fernivy():
     fout.close()
 
 
-"""
-This generator creates the debian/control file for perf. 
-"""
 def generate_perf_control(conf):
+    """
+    This generator creates the debian/control file for perf.
+    :param conf: The configuration of the project.
+    """
     with open('perf/package/debian/control', 'w') as f:
         f.write("Source: " + conf.configs['package'] + "\n")
         f.write("Section: admin" + "\n")
@@ -86,6 +90,10 @@ def generate_perf_control(conf):
 
 
 def generate_perf(conf):
+    """
+    This generator creates the package for perf.
+    :param conf: The configuration of the project.
+    """
     generate_perf_fernivy()
     generate_perf_control(conf)
 
