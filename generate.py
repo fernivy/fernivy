@@ -1,4 +1,4 @@
-import sys
+import sys, shutil
 
 class Config:
     """
@@ -17,30 +17,6 @@ class Config:
         return self._configs
 
 
-def generate_powerlog():
-    """
-    This generator:
-    * replaces all occurrences of "$TOOL" with "powerlog",
-    * skips the line assigning the TOOL variable.
-    """
-    # input file
-    fin = open("template.sh", "rt")
-    # output file to write the result to
-    fout = open("powerlog/package/fernivy", "wt")
-    # for each line in the input file
-    for line in fin:
-        if line.startswith('TOOL='):
-            continue
-        # read replace the string and write to output file
-        line = line\
-            .replace('$TOOL\"/backup/\"$TOOL\"_run.sh\"', './powerlog_run.sh')\
-            .replace('\"powerlog\"', 'powerlog')
-        fout.write(line)
-    # close input and output files
-    fin.close()
-    fout.close()
-
-
 def generate_perf_fernivy():
     """
     This generator:
@@ -55,16 +31,16 @@ def generate_perf_fernivy():
     fout = open("perf/package/fernivy", "wt")
     # for each line in the input file
     for line in fin:
-        if line.startswith('TOOL='):
+        if line.startswith("TOOL="):
             continue
         if line.__contains__("Request for sudo access when needed"):
             fout.write("if (( $EUID != 0 )); then echo \"Please run as root!\"; exit; fi\n")
             continue
         # read replace the string and write to output file
         line = line\
-            .replace('$TOOL\"/backup/\"$TOOL\"_run.sh\"', '/usr/lib/perf_run.sh')\
-            .replace('$TOOL', 'perf')\
-            .replace('parser.py', '/usr/lib/parser.py')
+            .replace("$TOOL\"/backup/\"$TOOL\"_run.sh\"", "/usr/lib/perf_run.sh")\
+            .replace("$TOOL", "perf")\
+            .replace("parser.py", "/usr/lib/parser.py")
         fout.write(line)
     # close input and output files
     fin.close()
@@ -76,17 +52,17 @@ def generate_perf_control(conf):
     This generator creates the debian/control file for perf.
     :param conf: The configuration of the project.
     """
-    with open('perf/package/debian/control', 'w') as f:
-        f.write("Source: " + conf.configs['package'] + "\n")
+    with open("perf/package/debian/control", "w") as f:
+        f.write("Source: " + conf.configs["package"] + "\n")
         f.write("Section: admin" + "\n")
-        f.write("Maintainer: " + conf.configs['maintainer'] + "\n")
+        f.write("Maintainer: " + conf.configs["maintainer"] + "\n")
         f.write("\n")
-        f.write("Package: " + conf.configs['package'] + "\n")
-        f.write("Version: " + conf.configs['version'] + "\n")
+        f.write("Package: " + conf.configs["package"] + "\n")
+        f.write("Version: " + conf.configs["version"] + "\n")
         f.write("Architecture: all" + "\n")
-        f.write("Depends: " + conf.configs['python'] + ",\n         linux-perf" + "\n")
-        f.write("Homepage: " + conf.configs['website'] + "\n")
-        f.write("Description: " + conf.configs['description'] + "\n")
+        f.write("Depends: " + conf.configs["python"] + ",\n         linux-perf" + "\n")
+        f.write("Homepage: " + conf.configs["website"] + "\n")
+        f.write("Description: " + conf.configs["description"] + "\n")
 
 
 def generate_perf(conf):
@@ -94,14 +70,50 @@ def generate_perf(conf):
     This generator creates the package for perf.
     :param conf: The configuration of the project.
     """
+    shutil.copytree("perf/backup/", "perf/package/")
     generate_perf_fernivy()
     generate_perf_control(conf)
+    shutil.copyfile("parser.py", "perf/package/parser.py")
 
-if __name__ == '__main__':
 
-    config = Config('config.yml')
+def generate_powerlog_fernivy():
+    """
+    This generator:
+    * replaces all occurrences of "$TOOL" with "powerlog",
+    * skips the line assigning the TOOL variable.
+    """
+    # input file
+    fin = open("template.sh", "rt")
+    # output file to write the result to
+    fout = open("powerlog/package/fernivy", "wt")
+    # for each line in the input file
+    for line in fin:
+        if line.startswith("TOOL="):
+            continue
+        # read replace the string and write to output file
+        line = line\
+            .replace("$TOOL\"/backup/\"$TOOL\"_run.sh\"", "./powerlog_run.sh")\
+            .replace("\"powerlog\"", "powerlog")
+        fout.write(line)
+    # close input and output files
+    fin.close()
+    fout.close()
 
-    if sys.argv[1] == 'perf':
+
+def generate_powerlog():
+    """
+    This generator creates the package for powerlog.
+    """
+    shutil.copytree("powerlog/backup/", "powerlog/package/")
+    generate_powerlog_fernivy()
+    shutil.copyfile("parser.py", "powerlog/package/parser.py")
+
+
+if __name__ == "__main__":
+
+    config = Config("config.yml")
+
+    if sys.argv[1] == "perf":
         generate_perf(config)
-    elif sys.argv[1] == 'powerlog':
+    elif sys.argv[1] == "powerlog":
         generate_powerlog()

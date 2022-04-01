@@ -58,7 +58,7 @@ class Processor:
         :param filename: The name of the target CSV.
         """
         columns = ["index", "timestamp", "total_energy_consumption", "average_power", "time_elapsed"]
-        with open(filename, 'w') as csvfile:
+        with open(filename, "w") as csvfile:
             writer = csv.DictWriter(csvfile, fieldnames=columns)
             writer.writeheader()
             for i, result in enumerate(self.data):
@@ -154,11 +154,11 @@ class PowerLogResult(Result):
             self.time = float(lines[-14].split(" = ")[1][:-2])
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     parser = ArgumentParser()
-    parser.add_argument('-m', '--measurement', required=True, type=str, help="Measuring tool used.")
-    parser.add_argument('-o-', '--output', required=True, type=str, help="Name of CSV file for output.")
-    parser.add_argument('-i', '--input', required=True, type=str, help="File with filenames which contain raw data.")
+    parser.add_argument("-m", "--measurement", required=True, type=str, help="Measuring tool used.")
+    parser.add_argument("-o-", "--output", required=True, type=str, help="Name of CSV file for output.")
+    parser.add_argument("-i", "--input", required=True, type=str, help="File with filenames which contain raw data.")
     args = parser.parse_args()
 
     temp = FileList(args.input) # get the object holding the relevant filenames
