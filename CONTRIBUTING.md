@@ -49,8 +49,7 @@ For this reason, the `yml` file we use cannot have nested properties.
 
 FernIvy is currently written using a mixture of Shell and Python scripts.
 As you can imagine, this can quickly become unmaintainable and hard to read.
-Therefore, we ask you to follow the code style in the repository and to **document** everything you do (code comments).
-We ask you to follow these guidelines:
+Therefore, we ask you to follow these code style guidelines:
 
 ### Python
 * Use the standard Python code style (snake-casing, indentation, etc.).
@@ -71,6 +70,11 @@ We ask you to follow these guidelines:
 ### Both
 * Use 4 spaces for 1 indent.
 * Use double-quotes for strings (`"` instead of `'`).
+* Provide comments for your code.
+
+## ChangeLog
+
+Please record each significant change in the [CHANGELOG.md](CHANGELOG.md) file under "Unreleased" to enable us to facilitate keeping track of all the changes.
 
 ## Git Usage
 
