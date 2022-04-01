@@ -33,7 +33,7 @@ def generate_powerlog():
             continue
         # read replace the string and write to output file
         line = line\
-            .replace('$TOOL', 'powerlog')\
+            .replace('$TOOL\"/backup/\"$TOOL\"_run.sh\"', './powerlog_run.sh')\
             .replace('\"powerlog\"', 'powerlog')
         fout.write(line)
     # close input and output files
@@ -62,7 +62,7 @@ def generate_perf_fernivy():
             continue
         # read replace the string and write to output file
         line = line\
-            .replace('\"./\"$TOOL\"', '\"/usr/lib/perf')\
+            .replace('$TOOL\"/backup/\"$TOOL\"_run.sh\"', '/usr/lib/perf_run.sh')\
             .replace('$TOOL', 'perf')\
             .replace('parser.py', '/usr/lib/parser.py')
         fout.write(line)
