@@ -74,7 +74,7 @@ set_mode() {
 # Set the default options.                                 #
 ############################################################
 
-DT=`date | tr -d ' :'`
+DT=$( date | tr -d ' :' )
 
 TOOL=perf
 

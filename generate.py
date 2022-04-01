@@ -16,7 +16,7 @@ class Config:
 
 """
 This generator:
-* replaces all occurences of "$TOOL" with "powerlog",
+* replaces all occurrences of "$TOOL" with "powerlog",
 * skips the line assigning the TOOL variable.
 """
 def generate_powerlog():
@@ -26,6 +26,8 @@ def generate_powerlog():
     fout = open("powerlog/package/fernivy", "wt")
     # for each line in the input file
     for line in fin:
+        if line.startswith('TOOL='):
+            continue
         # read replace the string and write to output file
         line = line\
             .replace('$TOOL', 'powerlog')\
@@ -38,7 +40,7 @@ def generate_powerlog():
 
 """
 This generator:
-* replaces all occurences of "$TOOL" with "perf",
+* replaces all occurrences of "$TOOL" with "perf",
 * sets the correct paths for the helper scripts,
 * skips the line assigning the TOOL variable,
 * adds the request for sudo access.
