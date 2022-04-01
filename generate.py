@@ -17,30 +17,23 @@ class Config:
         return self._configs
 
 
-def generate_perf_fernivy():
+def generate_fernivy(tool, replace):
     """
     This generator:
-    * replaces all occurrences of "$TOOL" with "perf",
-    * sets the correct paths for the helper scripts,
     * skips the line assigning the TOOL variable,
-    * adds the request for sudo access.
+    * applies the specific replacement function,
+    * replaces all remaining occurrences of "$TOOL" with the name of the tool.
     """
     # input file
     fin = open("template.sh", "rt")
     # output file to write the result to
-    fout = open("perf/package/fernivy", "wt")
+    fout = open(tool + "/package/fernivy", "wt")
     # for each line in the input file
     for line in fin:
         if line.startswith("TOOL="):
             continue
-        if line.__contains__("Request for sudo access when needed"):
-            fout.write("if (( $EUID != 0 )); then echo \"Please run as root!\"; exit; fi\n")
-            continue
         # read replace the string and write to output file
-        line = line\
-            .replace("$TOOL\"/backup/\"$TOOL\"_run.sh\"", "/usr/lib/perf_run.sh")\
-            .replace("$TOOL", "perf")\
-            .replace("parser.py", "/usr/lib/parser.py")
+        line = replace(line).replace("$TOOL", tool)
         fout.write(line)
     # close input and output files
     fin.close()
@@ -71,33 +64,17 @@ def generate_perf(conf):
     :param conf: The configuration of the project.
     """
     shutil.copytree("perf/backup/", "perf/package/")
-    generate_perf_fernivy()
+    generate_fernivy("perf",
+        lambda line :
+            line.replace(
+                    "# Request for sudo access when needed",
+                    "if (( $EUID != 0 )); then echo \"Please run as root!\"; exit; fi"
+                )
+                .replace("$TOOL\"/backup/\"$TOOL\"_run.sh\"", "/usr/lib/perf_run.sh")
+                .replace("parser.py", "/usr/lib/parser.py")
+    )
     generate_perf_control(conf)
     shutil.copyfile("parser.py", "perf/package/parser.py")
-
-
-def generate_powerlog_fernivy():
-    """
-    This generator:
-    * replaces all occurrences of "$TOOL" with "powerlog",
-    * skips the line assigning the TOOL variable.
-    """
-    # input file
-    fin = open("template.sh", "rt")
-    # output file to write the result to
-    fout = open("powerlog/package/fernivy", "wt")
-    # for each line in the input file
-    for line in fin:
-        if line.startswith("TOOL="):
-            continue
-        # read replace the string and write to output file
-        line = line\
-            .replace("$TOOL\"/backup/\"$TOOL\"_run.sh\"", "./powerlog_run.sh")\
-            .replace("\"powerlog\"", "powerlog")
-        fout.write(line)
-    # close input and output files
-    fin.close()
-    fout.close()
 
 
 def generate_powerlog():
@@ -105,7 +82,10 @@ def generate_powerlog():
     This generator creates the package for powerlog.
     """
     shutil.copytree("powerlog/backup/", "powerlog/package/")
-    generate_powerlog_fernivy()
+    generate_fernivy("powerlog",
+        lambda line :
+            line.replace("$TOOL\"/backup/\"$TOOL\"_run.sh\"", "./powerlog_run.sh")
+    )
     shutil.copyfile("parser.py", "powerlog/package/parser.py")
 
 
