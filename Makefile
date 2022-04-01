@@ -15,6 +15,11 @@ powerlog: clean_powerlog
 	@chmod +x powerlog/package/fernivy
 	@chmod +x powerlog/package/powerlog_run.sh
 
+brew_powerlog: clean_powerlog
+	@python3 generate.py brew_powerlog
+	@chmod +x powerlog/package/fernivy
+	@chmod +x powerlog/package/powerlog_run.sh
+
 clean_powerlog:
 	@rm -rf powerlog/package
 

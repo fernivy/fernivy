@@ -77,15 +77,28 @@ def generate_perf(conf):
     shutil.copyfile("parser.py", "perf/package/parser.py")
 
 
-def generate_powerlog():
+def generate_powerlog(conf=None):
     """
     This generator creates the package for powerlog.
     """
     shutil.copytree("powerlog/backup/", "powerlog/package/")
-    generate_fernivy("powerlog",
-        lambda line :
-            line.replace("$TOOL\"/backup/\"$TOOL\"_run.sh\"", "./powerlog_run.sh")
-    )
+    if conf is None: # installed from source
+        generate_fernivy("powerlog",
+            lambda line :
+                line.replace("$TOOL\"/backup/\"$TOOL\"_run.sh\"", "./powerlog_run.sh")
+        )
+    else: # installed through homebrew
+        generate_fernivy("powerlog",
+            lambda line :
+                line.replace(
+                    "$TOOL\"/backup/\"$TOOL\"_run.sh\"",
+                    f"\"/usr/local/Cellar/fernivy/{conf.configs['version']}/bin/powerlog_run.sh"
+                )
+                .replace(
+                    "parser.py",
+                    f"/usr/local/Cellar/fernivy/{conf.configs['version']}/bin/parser.py"
+                )
+        )
     shutil.copyfile("parser.py", "powerlog/package/parser.py")
 
 
@@ -97,3 +110,5 @@ if __name__ == "__main__":
         generate_perf(config)
     elif sys.argv[1] == "powerlog":
         generate_powerlog()
+    elif sys.argv[1] == "brew_powerlog":
+        generate_powerlog(config)
