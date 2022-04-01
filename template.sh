@@ -179,7 +179,7 @@ loading_bar $RUNS 0 # start up the loading bar
 TMP=$( mktemp ) # create a temporary file to store file names
 for (( i=0; i<RUNS; i++ )); do
     F=$( mktemp ) # create a temporary file to generate to
-    "./"$TOOL"_run.sh" $F "$CMD" &>/dev/null # run the tool
+    $TOOL"/backup/"$TOOL"_run.sh" $F "$CMD" &>/dev/null # run the tool
 
     echo $F >> $TMP # add the name of the file to the TMP file
 
