@@ -1,5 +1,6 @@
 import sys, shutil
 
+
 class Config:
     """
     The class which deals with the configurations of the project.
@@ -9,15 +10,15 @@ class Config:
         self._configs = {}
         with open(filename) as f:
             for line in f:
-               data = line.strip().split(": ")
-               self._configs[data[0]] = data[1]
+                data = line.strip().split(": ")
+                self._configs[data[0]] = data[1]
 
     @property
     def configs(self):
         return self._configs
 
 
-def generate_fernivy(tool, replace):
+def generate_fernivy(tool, replace, package="package"):
     """
     This generator:
     * skips the line assigning the TOOL variable,
@@ -27,7 +28,7 @@ def generate_fernivy(tool, replace):
     # input file
     fin = open("template.sh", "rt")
     # output file to write the result to
-    fout = open(tool + "/package/fernivy", "wt")
+    fout = open(tool + f"/{package}/fernivy", "wt")
     # for each line in the input file
     for line in fin:
         if line.startswith("TOOL="):
@@ -65,28 +66,44 @@ def generate_perf(conf):
     """
     shutil.copytree("perf/backup/", "perf/package/")
     generate_fernivy("perf",
-        lambda line :
-            line.replace(
-                    "# Request for sudo access when needed",
-                    "if (( $EUID != 0 )); then echo \"Please run as root!\"; exit; fi"
-                )
-                .replace("$TOOL\"/backup/\"$TOOL\"_run.sh\"", "/usr/lib/perf_run.sh")
-                .replace("parser.py", "/usr/lib/parser.py")
-    )
+                     lambda line:
+                     line.replace(
+                         "# Request for sudo access when needed",
+                         "if (( $EUID != 0 )); then echo \"Please run as root!\"; exit; fi"
+                     )
+                     .replace("$TOOL\"/backup/\"$TOOL\"_run.sh\"", "/usr/lib/perf_run.sh")
+                     .replace("parser.py", "/usr/lib/parser.py")
+                     )
     generate_perf_control(conf)
     shutil.copyfile("parser.py", "perf/package/parser.py")
 
 
-def generate_powerlog():
+def generate_powerlog(conf):
     """
-    This generator creates the package for powerlog.
+    This generator creates the package and package-brew for powerlog.
     """
     shutil.copytree("powerlog/backup/", "powerlog/package/")
+    shutil.copytree("powerlog/backup/", "powerlog/package-brew/")
+    # installation from source
     generate_fernivy("powerlog",
-        lambda line :
-            line.replace("$TOOL\"/backup/\"$TOOL\"_run.sh\"", "./powerlog_run.sh")
-    )
+                     lambda line:
+                     line.replace("$TOOL\"/backup/\"$TOOL\"_run.sh\"", "./powerlog_run.sh")
+                     )
+    # installation through homebrew
+    generate_fernivy("powerlog",
+                     lambda line:
+                     line.replace(
+                         "$TOOL\"/backup/\"$TOOL\"_run.sh\"",
+                         f"/usr/local/Cellar/fernivy/{conf.configs['version']}/bin/powerlog_run.sh"
+                     )
+                     .replace(
+                         "parser.py",
+                         f"/usr/local/Cellar/fernivy/{conf.configs['version']}/bin/parser.py"
+                     ),
+                     package="package-brew"
+                     )
     shutil.copyfile("parser.py", "powerlog/package/parser.py")
+    shutil.copyfile("parser.py", "powerlog/package-brew/parser.py")
 
 
 if __name__ == "__main__":
@@ -96,4 +113,4 @@ if __name__ == "__main__":
     if sys.argv[1] == "perf":
         generate_perf(config)
     elif sys.argv[1] == "powerlog":
-        generate_powerlog()
+        generate_powerlog(config)
