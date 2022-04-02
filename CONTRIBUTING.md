@@ -13,20 +13,21 @@ We therefore work with a `template.sh` for development, and we use a `Makefile` 
 Let's take Perf as an example. The following things are needed to support Perf:
 
 1. A separate directory called `perf` with a `backup` subdirectory.
-2. A `perf_run.sh` script inside the `perf/backup` directory which contains the command that performs the actual measurement.
+2. A `perf_run.sh` script inside the `perf/backup/` directory which contains the command that performs the actual measurement.
    It takes the target output file as the first argument and the command to measure for as the second argument.
-3. A directory `perf/backup/debian` which contains the file structure necessary to create a `.deb` package from FernIvy.
-4. A `generate_perf` method in the `generate.py` file, which generates the entire tool ready to be packaged into the `perf/package/` directory. It:
-   1. copies the entire `perf/backup/` into `perf/package`,
-   2. generates the `fernivy` script by replacing `$TOOL` with the correct packaging locations and adding a line requesting sudo access to run,
-   3. generates the `debian/control` file containing the relevant release information,
-   4. copies the `parser.py` into the package.
+3. A directory `perf/backup/debian/` which contains the file structure necessary to create a `.deb` package from FernIvy.
+4. A `generate_perf` method in the `generate.py` file, which generates the entire tool into the `perf/package/` and `perf/package-deb/` directories. It:
+   1. creates a `perf/package/` directory and copies the `perf/backup/perf_run.sh` script into it,
+   2. copies the entire `perf/backup/` into `perf/package-deb/`,
+   3. generates the `fernivy` script into both directories by replacing `$TOOL` with the correct packaging locations and adding a line requesting sudo access to run,
+   4. generates the `debian/control` file containing the relevant release information into `perf/package-deb/`,
+   5. copies the `parser.py` into both packages.
 5. Two commands in the `Makefile`:
-   1. A `clean_perf` command which recursively removes the entire `perf/package` directory and is included in the `clean` command.
-   2. A `perf` command which cleans the package, calls the `generate.py` script for perf, and makes all the executables executable.
+   1. A `clean_perf` command which recursively removes both directories and is included in the `clean` command.
+   2. A `perf` command which cleans the packages, calls the `generate.py` script for perf, and makes all the executables executable.
       It is included in the `generate` command.
 
-To package FernIvy with Perf into a `.deb` file, simply navigate to the `perf/package/` directory and run `dpkg-buildpackage -uc -us`.
+To package FernIvy with Perf into a `.deb` file, simply navigate to the `perf/package-deb/` directory and run `dpkg-buildpackage -uc -us`.
 
 To run FernIvy with Perf in the dev environment, change the `TOOL=<tool>` line in `template.sh` to `TOOL=perf` (this line is always removed in the generation process).
 You can run e.g. the following command:

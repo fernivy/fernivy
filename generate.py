@@ -1,3 +1,4 @@
+import os
 import sys, shutil
 from datetime import datetime
 
@@ -82,7 +83,8 @@ def generate_perf(conf):
     This generator creates the package for perf.
     :param conf: The configuration of the project.
     """
-    shutil.copytree("perf/backup/", "perf/package/")
+    os.mkdir("perf/package")
+    shutil.copyfile("perf/backup/perf_run.sh", "perf/package/perf_run.sh")
     shutil.copytree("perf/backup/", "perf/package-deb/")
     # installation from source
     generate_fernivy("perf",
