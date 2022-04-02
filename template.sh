@@ -19,7 +19,6 @@ loading_bar(){
     if [ $2 -lt $1 ]; then
         # if it is not the last iteration, overwrite previous bar
         echo -ne "$STRING\r"
-        sleep $SLP
     else
         echo "$STRING"
     fi
@@ -183,7 +182,11 @@ for (( i=0; i<RUNS; i++ )); do
 
     echo $F >> $TMP # add the name of the file to the TMP file
 
-	  loading_bar $RUNS $(($i+1)) # update the loading bar
+    loading_bar $RUNS $(($i+1)) # update the loading bar
+
+    if [[ $i -lt $(($RUNS-1)) ]]; then
+        sleep $SLP
+    fi
 done
 
 # call the parser
