@@ -4,6 +4,7 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 - Fixed the generator to not copy the `debian` folder to `perf/package/`
+- Remove sleep time after the final run
 
 ## [v1.2.0] 1 April 2022
 - Added `package-brew` generator for PowerLog (works with `homebrew` packaging)
